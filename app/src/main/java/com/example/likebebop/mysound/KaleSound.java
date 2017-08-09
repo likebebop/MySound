@@ -11,7 +11,9 @@ import android.support.annotation.WorkerThread;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Phaser;
+import java.util.concurrent.TimeUnit;
 
 import rx.Scheduler;
 import rx.android.schedulers.HandlerScheduler;
@@ -30,6 +32,7 @@ public class KaleSound implements SoundPool.OnLoadCompleteListener {
     static final int INVALID_ID = 0;
     static final int INFINITE_LOOP = -1;
     static final int NO_LOOP = 0;
+    static final int TIMEOUT = 1000;
     SoundPool soundPool;
 
     static {
@@ -50,7 +53,8 @@ public class KaleSound implements SoundPool.OnLoadCompleteListener {
     }
 
     //-- https://stackoverflow.com/questions/14255019/latch-that-can-be-incremented
-    Phaser phaser = new Phaser(1);
+    //-- phaser를 쓰려고 했으나. 안됨; ㅎㅎ
+    CountDownLatch latch = new CountDownLatch(0);
 
     @WorkerThread
     public void vibrate(int milliseconds) {
@@ -65,14 +69,20 @@ public class KaleSound implements SoundPool.OnLoadCompleteListener {
     @Override
     public void onLoadComplete(SoundPool soundPool, int soundId, int status) {
         KaleLogging.CUR_LOG.debug("onLoadComplete " + soundId);
-        phaser.arriveAndDeregister();
+        synchronized (KaleSound.this) {
+            latch.countDown();
+            //KaleLogging.CUR_LOG.warn("(-)latch.getCount() = " + latch.getCount());
+        }
     }
 
     public int loadShortSound(String path) {
         int soundId = INVALID_ID;
         try {
             KaleLogging.PROFILER.tick();
-            phaser.register();
+            synchronized (KaleSound.this) {
+                latch = new CountDownLatch((int) latch.getCount() + 1);
+                //KaleLogging.CUR_LOG.warn("(+)latch.getCount() = " + latch.getCount());
+            }
             if (StickerHelper.isAsset(path)) {
                 AssetFileDescriptor fd = context.getAssets().openFd(StickerHelper.getAssetPath(path));
                 soundId = soundPool.load(fd, 1);
@@ -105,7 +115,9 @@ public class KaleSound implements SoundPool.OnLoadCompleteListener {
         final int myStreamId = ++lastMyStreamId;
         handler.post(()-> {
             try {
-                phaser.arriveAndAwaitAdvance();
+                synchronized (KaleSound.this) {
+                    latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
+                }
                 KaleLogging.PROFILER.tick();
                 float v = getVolume();
                 StreamIdHolder h = new StreamIdHolder(soundPool.play(soundId, v, v, 1, loop, 1));
@@ -125,7 +137,9 @@ public class KaleSound implements SoundPool.OnLoadCompleteListener {
                 if (!myStreamIdMap.containsKey(streamId)) {
                     return;
                 }
-                phaser.arriveAndAwaitAdvance();
+                synchronized (KaleSound.this) {
+                    latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
+                }
                 StreamIdHolder holder = myStreamIdMap.get(streamId);
                 KaleLogging.PROFILER.tick();
                 soundPool.stop(holder.streamId);
