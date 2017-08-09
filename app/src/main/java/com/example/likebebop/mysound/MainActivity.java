@@ -43,7 +43,7 @@ public class MainActivity extends Activity {
 
     @OnClick(R.id.play_btn)
     public void onPlayBtn() {
-        streamId = sound.play(soundId, 0);
+        streamId = sound.play(soundId, KaleSound.NO_LOOP);
     }
 
     @OnClick(R.id.play_loop_btn)

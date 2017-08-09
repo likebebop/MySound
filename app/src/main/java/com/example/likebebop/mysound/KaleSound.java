@@ -29,6 +29,7 @@ public class KaleSound implements SoundPool.OnLoadCompleteListener {
 
     static final int INVALID_ID = 0;
     static final int INFINITE_LOOP = -1;
+    static final int NO_LOOP = 0;
     SoundPool soundPool;
 
     static {
