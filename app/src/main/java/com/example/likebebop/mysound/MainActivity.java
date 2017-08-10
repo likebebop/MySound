@@ -15,6 +15,10 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         KaleConfig.INSTANCE.init(getApplicationContext());
         ButterKnife.bind(this);
+        init();
+    }
+
+    private void init() {
         sound = new KaleSound();
     }
 
@@ -28,38 +32,37 @@ public class MainActivity extends Activity {
 
     @OnClick(R.id.load_btn)
     public void onLoadBtn() {
-        soundId = sound.loadShortSound(StickerHelper.ASSET_PREFIX + "sound/beep.mp3");
+        soundId = sound.soundPool.load(StickerHelper.ASSET_PREFIX + "sound/beep.mp3");
     }
 
     @OnClick(R.id.load2_btn)
     public void onLoad2Btn() {
-        soundId = sound.loadShortSound(StickerHelper.ASSET_PREFIX + "sound/dreaming_2_5s.aac");
+        soundId = sound.soundPool.load(StickerHelper.ASSET_PREFIX + "sound/dreaming_2_5s.aac");
     }
 
     @OnClick(R.id.load3_btn)
     public void onLoad3Btn() {
-        soundId = sound.loadShortSound(StickerHelper.ASSET_PREFIX + "sound/dreaming_10s.aac");
+        soundId = sound.soundPool.load(StickerHelper.ASSET_PREFIX + "sound/dreaming_10s.aac");
     }
 
     @OnClick(R.id.play_btn)
     public void onPlayBtn() {
-        streamId = sound.play(soundId, KaleSound.NO_LOOP);
+        streamId = sound.soundPool.play(soundId, KaleSoundPool.NO_LOOP);
     }
 
     @OnClick(R.id.play_loop_btn)
     public void onPlayLoopBtn() {
-        streamId = sound.play(soundId, KaleSound.INFINITE_LOOP);
+        streamId = sound.soundPool.play(soundId, KaleSoundPool.INFINITE_LOOP);
     }
 
     @OnClick(R.id.stop_btn)
     public void onStopBtn() {
-        sound.stop(streamId);
+        sound.soundPool.stop(streamId);
         streamId = 0;
     }
 
     @OnClick(R.id.release_btn)
     public void onReleaseBtn() {
         sound.release();
-        sound = new KaleSound();
     }
 }
