@@ -20,7 +20,7 @@ import static com.example.likebebop.mysound.KaleSound.INVALID_ID;
  */
 
 public class KaleSoundPool implements SoundPool.OnLoadCompleteListener, Releasable {
-    static final int TIMEOUT = 1000;
+    static final int TIMEOUT = 3000;
     SoundPool soundPool;
 
     public KaleSoundPool() {

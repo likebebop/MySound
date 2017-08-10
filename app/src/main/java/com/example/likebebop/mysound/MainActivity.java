@@ -35,6 +35,12 @@ public class MainActivity extends Activity {
         soundId = sound.soundPool.load(StickerHelper.ASSET_PREFIX + "sound/beep.mp3");
     }
 
+    @OnClick(R.id.unload_btn)
+    public void onUnloadBtn() {
+        sound.soundPool.unload(soundId);
+        soundId = 0;
+    }
+
     @OnClick(R.id.load2_btn)
     public void onLoad2Btn() {
         soundId = sound.soundPool.load(StickerHelper.ASSET_PREFIX + "sound/dreaming_2_5s.aac");
@@ -73,6 +79,16 @@ public class MainActivity extends Activity {
         mediaId = sound.mediaSound.load(StickerHelper.ASSET_PREFIX + "sound/audio.mp4");
     }
 
+    @OnClick(R.id.unload_m_btn)
+    public void onUnloadMBtn() {
+        sound.mediaSound.unload(mediaId);
+        soundId = 0;
+    }
+
+    @OnClick(R.id.load2_m_btn)
+    public void onLoad2MBtn() {
+        mediaId = sound.mediaSound.load(StickerHelper.ASSET_PREFIX + "sound/dreaming_2_5s.aac");
+    }
 
     @OnClick(R.id.play_m_btn)
     public void onPlayMBtn() {
@@ -83,6 +99,8 @@ public class MainActivity extends Activity {
     public void onPlayMLoopBtn() {
         sound.mediaSound.play(mediaId, true);
     }
+
+
 
     @OnClick(R.id.stop_m_btn)
     public void onStopMBtn() {

@@ -10,15 +10,13 @@
     tools:layout_editor_absoluteY="73dp"
     tools:layout_editor_absoluteX="0dp">
 
-
-
     <Button
         android:id="@+id/vibrate_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="71dp"
+        android:layout_marginLeft="35dp"
         android:layout_marginStart="33dp"
-        android:layout_marginTop="11dp"
+        android:layout_marginTop="16dp"
         android:elevation="0dp"
         android:text="vibrate"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -37,13 +35,25 @@
         app:layout_constraintTop_toBottomOf="@+id/vibrate_btn"/>
 
     <Button
+        android:id="@+id/unload_btn"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="unload"
+        android:layout_marginStart="8dp"
+        tools:layout_constraintBaseline_creator="1"
+        app:layout_constraintLeft_toRightOf="@+id/load_btn"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBaseline_toBaselineOf="@+id/load_btn"/>
+
+    <Button
         android:id="@+id/load2_btn"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="load2"
         android:layout_marginStart="8dp"
         tools:layout_constraintBaseline_creator="1"
-        app:layout_constraintLeft_toRightOf="@+id/load_btn"
+        app:layout_constraintLeft_toRightOf="@+id/unload_btn"
         android:layout_marginLeft="8dp"
         android:layout_marginTop="8dp"
         app:layout_constraintBaseline_toBaselineOf="@+id/load_btn"/>
@@ -102,6 +112,30 @@
         android:text="load m"
         app:layout_constraintLeft_toLeftOf="@+id/play_btn"
         app:layout_constraintTop_toBottomOf="@+id/play_btn"/>
+
+    <Button
+        android:id="@+id/unload_m_btn"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="unload"
+        android:layout_marginStart="8dp"
+        tools:layout_constraintBaseline_creator="1"
+        app:layout_constraintLeft_toRightOf="@+id/load_m_btn"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBaseline_toBaselineOf="@+id/load_m_btn"/>
+
+    <Button
+        android:id="@+id/load2_m_btn"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="load2 m"
+        android:layout_marginStart="8dp"
+        tools:layout_constraintBaseline_creator="1"
+        app:layout_constraintLeft_toRightOf="@+id/unload_m_btn"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBaseline_toBaselineOf="@+id/load_m_btn"/>
 
 
     <Button
