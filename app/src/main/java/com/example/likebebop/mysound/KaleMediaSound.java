@@ -9,6 +9,9 @@ import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by likebebop on 2017. 8. 10..
+ *
+ * Sound Threading과 API단순화, Asset리소스 처리등을 수행
+ *
  */
 
 public class KaleMediaSound implements Releasable {
