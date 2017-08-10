@@ -5,14 +5,8 @@ import android.net.Uri;
 
 
 public class SafeMediaPlayer implements MediaPlayer.OnCompletionListener {
-    @Override
-    public void onCompletion(MediaPlayer mp) {
-
-    }
-    /*static public LogObject LOG = StickerSound.LOG;
-    public static SafeMediaPlayer NULL = new SafeMediaPlayer(SoundItem.NULL);
+    static public KaleLog LOG = KaleLogging.CUR_LOG;
     private boolean looping;
-    SoundItem owner = SoundItem.NULL;
     private MediaPlayer player;
     private Uri uri;
 
@@ -55,7 +49,7 @@ public class SafeMediaPlayer implements MediaPlayer.OnCompletionListener {
         }
     }
 
-    private void build(Uri uri, boolean looping) {
+    public void SafeMediaPlayer(Uri uri, boolean looping) {
         HandyProfiler p = new HandyProfiler(LOG);
         try {
             release();
@@ -68,7 +62,6 @@ public class SafeMediaPlayer implements MediaPlayer.OnCompletionListener {
             if (looping) {
                 player.setOnCompletionListener(this);
             }
-            owner.buildFrameCount(player.getDuration());
         } catch (Exception e) {
             LOG.warn(e);
             player = null;
@@ -77,28 +70,7 @@ public class SafeMediaPlayer implements MediaPlayer.OnCompletionListener {
         }
     }
 
-    public SafeMediaPlayer(SoundEffect eff) {
-        this.owner = eff.owner;
-        build(eff.uri, eff.triggerType.useLoop());
-    }
-
-    public SafeMediaPlayer(SoundItem item) {
-        this.owner = item;
-        build(item.getResourceUri(), true);
-    }
-
-    static MediaPlayer.OnCompletionListener NULL_LISTENER = mp -> {
-    };
-    MediaPlayer.OnCompletionListener listener = NULL_LISTENER;
-
-    public void setOnCompletionListener(MediaPlayer.OnCompletionListener listener) {
-        if (player == null) {
-            return;
-        }
-        this.listener = listener;
-    }
-
-    private void start() {
+    public void play() {
         if (player == null) {
             return;
         }
@@ -138,7 +110,6 @@ public class SafeMediaPlayer implements MediaPlayer.OnCompletionListener {
             return;
         }
         try {
-            setOnCompletionListener(NULL_LISTENER);
             stop();
             player.release();
         } catch (Exception e) {
@@ -150,7 +121,6 @@ public class SafeMediaPlayer implements MediaPlayer.OnCompletionListener {
     }
 
     public void reset() {
-        lastFrameInfo.reset();
         status = Status.IDLE;
-    }*/
+    }
 }
