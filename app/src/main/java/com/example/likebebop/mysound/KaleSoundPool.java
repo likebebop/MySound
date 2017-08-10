@@ -8,9 +8,9 @@ import android.support.annotation.WorkerThread;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import static com.example.likebebop.mysound.KaleSound.INVALID_ID;
+import static com.example.likebebop.mysound.KaleSound.handler;
 
 /**
  * Created by likebebop on 2017. 8. 9..
@@ -20,13 +20,12 @@ import static com.example.likebebop.mysound.KaleSound.INVALID_ID;
  */
 
 public class KaleSoundPool implements SoundPool.OnLoadCompleteListener, Releasable {
-    static final int TIMEOUT = 3000;
     SoundPool soundPool;
 
     public KaleSoundPool() {
         soundPool = new SoundPool(10, AudioManager.STREAM_MUSIC, 0);
-        //-- 비동기 완료는 main thread에서 받기 위해서
-        soundPool.setOnLoadCompleteListener(this);
+        //-- 비동기 완료는 sound thread에서 받기 위해서
+        handler.post(()->soundPool.setOnLoadCompleteListener(this));
     }
 
     //-- https://stackoverflow.com/questions/14255019/latch-that-can-be-incremented
@@ -36,26 +35,21 @@ public class KaleSoundPool implements SoundPool.OnLoadCompleteListener, Releasab
     @Override
     public void onLoadComplete(SoundPool soundPool, int soundId, int status) {
         KaleLogging.CUR_LOG.debug("onLoadComplete " + soundId);
-        synchronized (KaleSoundPool.this) {
-            latch.countDown();
-            //KaleLogging.CUR_LOG.warn("(-)latch.getCount() = " + latch.getCount());
-        }
+        latch.countDown();
     }
 
     public int load(String path) {
         int soundId = INVALID_ID;
         try {
             KaleLogging.PROFILER.tick();
-            synchronized (KaleSoundPool.this) {
-                latch = new CountDownLatch((int) latch.getCount() + 1);
-                //KaleLogging.CUR_LOG.warn("(+)latch.getCount() = " + latch.getCount());
-            }
+            latch = new CountDownLatch(1);
             if (StickerHelper.isAsset(path)) {
                 AssetFileDescriptor fd = KaleConfig.INSTANCE.context.getAssets().openFd(StickerHelper.getAssetPath(path));
                 soundId = soundPool.load(fd, 1);
-                return soundId;
+            } else {
+                soundId = soundPool.load(path, 1);
             }
-            soundId = soundPool.load(path, 1);
+            latch.await();
         } catch (IOException e) {
             KaleLogging.CUR_LOG.warn(e);
         } finally {
@@ -82,12 +76,8 @@ public class KaleSoundPool implements SoundPool.OnLoadCompleteListener, Releasab
         final int myStreamId = ++lastMyStreamId;
         KaleSound.handler.post(()-> {
             try {
-                synchronized (KaleSoundPool.this) {
-                    latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
-                }
                 KaleLogging.PROFILER.tick();
-                float v = getVolume();
-                StreamIdHolder h = new StreamIdHolder(soundPool.play(soundId, v, v, 1, looping ? -1 : 0, 1));
+                StreamIdHolder h = new StreamIdHolder(soundPool.play(soundId, 1, 1, 1, looping ? -1 : 0, 1));
                 myStreamIdMap.put(myStreamId, h);
                 KaleLogging.PROFILER.tockWithDebug(String.format("play (%d) = %d", soundId, h.streamId));
             } catch (Exception e) {
@@ -103,9 +93,6 @@ public class KaleSoundPool implements SoundPool.OnLoadCompleteListener, Releasab
             try {
                 if (!myStreamIdMap.containsKey(streamId)) {
                     return;
-                }
-                synchronized (KaleSoundPool.this) {
-                    latch.await(TIMEOUT, TimeUnit.MILLISECONDS);
                 }
                 StreamIdHolder holder = myStreamIdMap.get(streamId);
                 KaleLogging.PROFILER.tick();
@@ -126,12 +113,6 @@ public class KaleSoundPool implements SoundPool.OnLoadCompleteListener, Releasab
         KaleSound.handler.post(()-> {
             soundPool.unload(soundId);
         });
-    }
-
-    float getVolume() {
-        float actVolume = (float) KaleSound.audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-        float maxVolume = (float) KaleSound.audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        return actVolume / maxVolume;
     }
 
     @WorkerThread
