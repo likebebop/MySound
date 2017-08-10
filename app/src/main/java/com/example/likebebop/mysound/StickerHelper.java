@@ -2,6 +2,10 @@
 package com.example.likebebop.mysound;
 
 
+import android.net.Uri;
+
+import java.io.File;
+
 /**
  * Created by likebebop on 2016-01-20.
  */
@@ -20,6 +24,13 @@ public class StickerHelper {
 			return null;
 		}
 		return path.substring(ASSET_PREFIX.length());
+	}
+
+	public static Uri getUriFromPath(String path) {
+		if (isAsset(path)) {
+			return Uri.parse("file://android_asset/" + getAssetPath(path));
+		}
+		return Uri.fromFile(new File(path));
 	}
 //
 //	//-- 아래는 매번 호출하면 느림

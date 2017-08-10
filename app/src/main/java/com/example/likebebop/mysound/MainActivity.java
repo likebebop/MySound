@@ -47,12 +47,12 @@ public class MainActivity extends Activity {
 
     @OnClick(R.id.play_btn)
     public void onPlayBtn() {
-        streamId = sound.soundPool.play(soundId, KaleSoundPool.NO_LOOP);
+        streamId = sound.soundPool.play(soundId, false);
     }
 
     @OnClick(R.id.play_loop_btn)
     public void onPlayLoopBtn() {
-        streamId = sound.soundPool.play(soundId, KaleSoundPool.INFINITE_LOOP);
+        streamId = sound.soundPool.play(soundId, true);
     }
 
     @OnClick(R.id.stop_btn)
@@ -65,4 +65,29 @@ public class MainActivity extends Activity {
     public void onReleaseBtn() {
         sound.release();
     }
+
+    int mediaId = 0;
+
+    @OnClick(R.id.load_m_btn)
+    public void onLoadMBtn() {
+        mediaId = sound.mediaSound.load(StickerHelper.ASSET_PREFIX + "sound/audio.mp4");
+    }
+
+
+    @OnClick(R.id.play_m_btn)
+    public void onPlayMBtn() {
+        sound.mediaSound.play(mediaId, false);
+    }
+
+    @OnClick(R.id.play_m_loop_btn)
+    public void onPlayMLoopBtn() {
+        sound.mediaSound.play(mediaId, true);
+    }
+
+    @OnClick(R.id.stop_m_btn)
+    public void onStopMBtn() {
+        sound.mediaSound.stop(mediaId);
+        streamId = 0;
+    }
+
 }

@@ -9,13 +9,13 @@ import android.support.annotation.WorkerThread;
 
 import rx.Scheduler;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.android.schedulers.HandlerScheduler;
 
 /**
  * Created by likebebop on 2017. 8. 10..
  */
 
 public class KaleSound {
+    static final int INVALID_ID = 0;
     public static Scheduler soundScheduler;
     public static Handler handler;
     public static AudioManager audioManager;
@@ -28,7 +28,8 @@ public class KaleSound {
         audioManager = (AudioManager) KaleConfig.INSTANCE.context.getSystemService(Context.AUDIO_SERVICE);
     }
 
-    KaleSoundPool soundPool = new KaleSoundPool();
+    public KaleSoundPool soundPool = new KaleSoundPool();
+    public KaleMediaSound mediaSound = new KaleMediaSound();
 
     @WorkerThread
     public void vibrate(int milliseconds) {
@@ -41,7 +42,9 @@ public class KaleSound {
     }
 
     public void release() {
+        mediaSound.release();
         soundPool.release();
         soundPool = new KaleSoundPool();
+        mediaSound = new KaleMediaSound();
     }
 }

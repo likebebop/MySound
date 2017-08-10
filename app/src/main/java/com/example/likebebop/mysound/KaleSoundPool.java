@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static com.example.likebebop.mysound.KaleSound.INVALID_ID;
+
 /**
  * Created by likebebop on 2017. 8. 9..
  *
@@ -17,12 +19,7 @@ import java.util.concurrent.TimeUnit;
  *
  */
 
-public class KaleSoundPool implements SoundPool.OnLoadCompleteListener {
-
-
-    static final int INVALID_ID = 0;
-    static final int INFINITE_LOOP = -1;
-    static final int NO_LOOP = 0;
+public class KaleSoundPool implements SoundPool.OnLoadCompleteListener, Releasable {
     static final int TIMEOUT = 1000;
     SoundPool soundPool;
 
@@ -78,7 +75,7 @@ public class KaleSoundPool implements SoundPool.OnLoadCompleteListener {
     HashMap<Integer, StreamIdHolder> myStreamIdMap = new HashMap<>();
 
     @WorkerThread
-    public int play(int soundId, int loop) {
+    public int play(int soundId, boolean looping) {
         if (soundId <= INVALID_ID) {
             return 0;
         }
@@ -90,7 +87,7 @@ public class KaleSoundPool implements SoundPool.OnLoadCompleteListener {
                 }
                 KaleLogging.PROFILER.tick();
                 float v = getVolume();
-                StreamIdHolder h = new StreamIdHolder(soundPool.play(soundId, v, v, 1, loop, 1));
+                StreamIdHolder h = new StreamIdHolder(soundPool.play(soundId, v, v, 1, looping ? -1 : 0, 1));
                 myStreamIdMap.put(myStreamId, h);
                 KaleLogging.PROFILER.tockWithDebug(String.format("play (%d) = %d", soundId, h.streamId));
             } catch (Exception e) {
@@ -113,11 +110,21 @@ public class KaleSoundPool implements SoundPool.OnLoadCompleteListener {
                 StreamIdHolder holder = myStreamIdMap.get(streamId);
                 KaleLogging.PROFILER.tick();
                 soundPool.stop(holder.streamId);
+
                 KaleLogging.PROFILER.tockWithDebug("stop " + holder.streamId);
                 myStreamIdMap.remove(streamId);
             } catch (Exception e) {
                 KaleLogging.CUR_LOG.warn(e);
             }
+        });
+    }
+
+    public void unload(int soundId) {
+        if (soundId <= INVALID_ID) {
+            return;
+        }
+        KaleSound.handler.post(()-> {
+            soundPool.unload(soundId);
         });
     }
 
@@ -128,7 +135,7 @@ public class KaleSoundPool implements SoundPool.OnLoadCompleteListener {
     }
 
     @WorkerThread
-    void release() {
+    public void release() {
         KaleSound.handler.post(()-> soundPool.release());
     }
 }

@@ -1,14 +1,19 @@
 package com.example.likebebop.mysound;
 
+import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.net.Uri;
 
+import java.io.File;
 
-public class SafeMediaPlayer implements MediaPlayer.OnCompletionListener {
+
+public class HandySoundPlayer implements MediaPlayer.OnCompletionListener, Releasable {
+
+    static public HandySoundPlayer NULL = new HandySoundPlayer();
+
     static public KaleLog LOG = KaleLogging.CUR_LOG;
-    private boolean looping;
     private MediaPlayer player;
-    private Uri uri;
+    private String path;
 
     enum Status {
         PLAYING,
@@ -17,10 +22,6 @@ public class SafeMediaPlayer implements MediaPlayer.OnCompletionListener {
 
         public boolean isPlaying() {
             return this == PLAYING;
-        }
-
-        public boolean isStopped() {
-            return this == STOP;
         }
     }
 
@@ -39,7 +40,13 @@ public class SafeMediaPlayer implements MediaPlayer.OnCompletionListener {
         HandyProfiler p = new HandyProfiler(LOG);
         try {
             player.reset();
-            player.setDataSource(KaleConfig.INSTANCE.context, uri);
+            if (StickerHelper.isAsset(path)) {
+                AssetFileDescriptor descriptor = KaleConfig.INSTANCE.context.getAssets().openFd(StickerHelper.getAssetPath(path));
+                player.setDataSource(descriptor.getFileDescriptor(), descriptor.getStartOffset(), descriptor.getLength());
+                descriptor.close();
+            } else {
+                player.setDataSource(KaleConfig.INSTANCE.context, Uri.fromFile(new File(path)));
+            }
             player.prepare();
             player.setOnCompletionListener(this);
         } catch (Exception e) {
@@ -49,41 +56,41 @@ public class SafeMediaPlayer implements MediaPlayer.OnCompletionListener {
         }
     }
 
-    public void SafeMediaPlayer(Uri uri, boolean looping) {
+    public HandySoundPlayer() {
+    }
+
+    public HandySoundPlayer(String path) {
         HandyProfiler p = new HandyProfiler(LOG);
         try {
-            release();
-            if (uri == null) {
-                return;
-            }
-            this.uri = uri;
-            this.looping = looping;
-            player = MediaPlayer.create(KaleConfig.INSTANCE.context, uri);
-            if (looping) {
-                player.setOnCompletionListener(this);
-            }
+            this.path = path;
+            player = new MediaPlayer();
+            reload();
         } catch (Exception e) {
             LOG.warn(e);
             player = null;
         } finally {
-            p.tockWithDebug("build");
+            p.tockWithDebug("HandySoundPlayer.build " + path);
         }
     }
 
-    public void play() {
+    public void play(boolean looping) {
         if (player == null) {
             return;
         }
+        stop();
+        player.setLooping(looping);
         //-- 진짜 player가 playing 중이 아닌 경우에는 start 해야 한다.
         if (player.isPlaying() && isPlaying()) {
             return;
         }
         try {
-            LOG.debug("(+) start " + uri);
+            KaleLogging.PROFILER.tick();
             player.start();
             status = Status.PLAYING;
         } catch (Exception e) {
             LOG.warn(e);
+        } finally {
+            KaleLogging.PROFILER.tockWithDebug("(+) start " + path);
         }
     }
 
@@ -95,12 +102,14 @@ public class SafeMediaPlayer implements MediaPlayer.OnCompletionListener {
         if (!status.isPlaying()) {
             return;
         }
-        LOG.debug("(-) stop " + uri);
         try {
+            KaleLogging.PROFILER.tick();
             player.pause();
             player.seekTo(0);
         } catch (Exception e) {
             LOG.warn(e);
+        } finally {
+            KaleLogging.PROFILER.tockWithDebug("(-) stop " + path);
         }
         status = Status.STOP;
     }
@@ -117,6 +126,7 @@ public class SafeMediaPlayer implements MediaPlayer.OnCompletionListener {
         } finally {
             player = null;
             reset();
+            KaleLogging.CUR_LOG.debug("release " + path);
         }
     }
 
