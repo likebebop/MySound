@@ -121,22 +121,30 @@ public class MainActivity extends Activity {
     //- backpressure test
     class Model extends BaseViewModel {
         public BehaviorSubject<Integer> rawTestRx = BehaviorSubject.create(1);
-        public Observable<Integer> rawObj = rawTestRx.onBackpressureBuffer();
-        public BehaviorSubject<Integer> testRx = behaviorSubject(()->rawObj, 1);
+        public Observable<Integer> safeObj = rawTestRx.onBackpressureBuffer();
+        public BehaviorSubject<Integer> testRx = behaviorSubject(()->safeObj, 1);
+        BehaviorSubject<Integer> safeObj2 = BehaviorSubject.create();
+        public Model() {
+            safeObj.subscribe(safeObj2);
+        }
     }
-
-    //-- onBackpressureBuffer 는 consume하는 녀석 바로 앞에 붙여야한다
 
     @OnClick(R.id.rx_btn)
     public void onRxBtn() {
-        //--  아래는 크래시 괜찮을것 같지만..
         //m.testRx.observeOn(Schedulers.io()).subscribe((l)->
-        m.testRx.onBackpressureBuffer().observeOn(Schedulers.io()).subscribe((l)->
+        //m.testRx.onBackpressureBuffer().observeOn(Schedulers.io()).subscribe((l)->
        // m.rawObj.observeOn(Schedulers.io()).subscribe((l)->
+        //m.safeObj2.observeOn(Schedulers.io()).subscribe((l)->
+        m.safeObj.observeOn(Schedulers.io()).subscribe((l)->
             {
                 SystemClock.sleep(1000);
                 KaleLogging.CUR_LOG.debug("timer " + l);
         });
+//        m.safeObj.observeOn(Schedulers.io()).subscribe((l)->
+//        {
+//            SystemClock.sleep(1000);
+//            KaleLogging.CUR_LOG.debug("timer2 " + l);
+//        });
     }
 
     @OnClick(R.id.rx_emit_btn)
